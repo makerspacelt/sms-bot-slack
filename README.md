@@ -6,10 +6,10 @@ This script will also log everything with logger via nixio module
 
 ## Requirements
 
-gnokii (For SMS sending obvious)
-luci (For the whole api)
-luasec (Make HTTPS requests)
-uhttpd-mod-lua (For inline uhttpd lua execution)
+ - gnokii (For SMS sending obvious)
+ - luci (For the whole api)
+ - luasec (Make HTTPS requests)
+ - uhttpd-mod-lua (For inline uhttpd lua execution)
 
 ## Config
 
