@@ -7,8 +7,8 @@ local sclient = require("ssl.https")
 
 
 nixio.openlog("sms-sender")
-
 nixio.syslog("info", "Child ready")
+
 local userId = arg[1]
 local text = arg[2]
 local callback = arg[3]
@@ -17,6 +17,7 @@ local channelId = arg[4]
 nixio.syslog("info", "userId: " .. userId)
 nixio.syslog("info", "text: " .. text)
 nixio.syslog("info", "callback: " .. callback)
+nixio.syslog("info", "channelId: " .. channelId)
 
 function exit()
 	nixio.closelog()
@@ -35,9 +36,9 @@ function respond(url, msg)
 		url = url,
 		method = "POST",
 		headers = {
-						["Content-Type"] = "application/json";
-						["Content-Length"] = #request_body;
-				},
+			["Content-Type"] = "application/json";
+			["Content-Length"] = #request_body;
+		},
 		source = ltn12.source.string(request_body),
 	}
 
@@ -46,21 +47,21 @@ end
 
 function getUser(user)
 	local response_body = {}
-		local request_body = "user=" .. user
+	local request_body = "user=" .. user
 
-		local res, code, response_headers = sclient.request{
-				url = "https://slack.com/api/users.info",
-				method = "POST",
-				headers = {
-						["Content-Type"] = "application/x-www-form-urlencoded";
-						["Content-Length"] = #request_body;
-						["Authorization"] = "Bearer " .. config.slack.oauth;
-				},
-				source = ltn12.source.string(request_body),
-				sink = ltn12.sink.table(response_body),
-		}
+	local res, code, response_headers = sclient.request{
+		url = "https://slack.com/api/users.info",
+		method = "POST",
+		headers = {
+			["Content-Type"] = "application/x-www-form-urlencoded";
+			["Content-Length"] = #request_body;
+			["Authorization"] = "Bearer " .. config.slack.oauth;
+		},
+		source = ltn12.source.string(request_body),
+		sink = ltn12.sink.table(response_body),
+	}
 
-		nixio.syslog("info", "User requested from slack")
+	nixio.syslog("info", "User requested from slack")
 
 	if code == 200 and type(response_body) == "table" then
 		return luci.jsonc.parse(table.concat(response_body))
@@ -71,21 +72,21 @@ end
 
 function getChannel(channel)
 	local response_body = {}
-		local request_body = "channel=" .. channel
+	local request_body = "channel=" .. channel
 
-		local res, code, response_headers = sclient.request{
-				url = "https://slack.com/api/conversations.info",
-				method = "POST",
-				headers = {
-						["Content-Type"] = "application/x-www-form-urlencoded";
-						["Content-Length"] = #request_body;
-						["Authorization"] = "Bearer " .. config.slack.oauth;
-				},
-				source = ltn12.source.string(request_body),
-				sink = ltn12.sink.table(response_body),
-		}
+	local res, code, response_headers = sclient.request{
+		url = "https://slack.com/api/conversations.info",
+		method = "POST",
+		headers = {
+			["Content-Type"] = "application/x-www-form-urlencoded";
+			["Content-Length"] = #request_body;
+			["Authorization"] = "Bearer " .. config.slack.oauth;
+		},
+		source = ltn12.source.string(request_body),
+		sink = ltn12.sink.table(response_body),
+	}
 
-		nixio.syslog("info", "Channel info requested from slack")
+	nixio.syslog("info", "Channel info requested from slack")
 
 	if code == 200 and type(response_body) == "table" then
 		return luci.jsonc.parse(table.concat(response_body))
@@ -120,4 +121,3 @@ else
 end
 
 exit()
-

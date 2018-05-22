@@ -129,4 +129,3 @@ function httpdispatch(request, prefix)
 	http.write("Roger! Sending sms to " .. name .. "\n\r")
 	http.close()
 end
-

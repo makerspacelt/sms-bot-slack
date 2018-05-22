@@ -6,4 +6,3 @@ _M.slack = {
 }
 
 return _M
-
