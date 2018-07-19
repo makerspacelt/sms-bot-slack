@@ -1,23 +1,23 @@
-#!/bin/sh              
-            
+#!/bin/sh
+
 # Modem device
-DEV=/dev/ttyACM0    
+DEV=/dev/ttyACM0
 LOCK_FILE=/tmp/sms-lock
-#AT&F&C1&D2                
-              
+#AT&F&C1&D2
+
 if [ -f $LOCK_FILE ]; then
 	LOCK_PID="$(cat $LOCK_FILE)"
 	while [ -d /proc/$LOCK_PID ]; do
-		echo "Lock detected! Waiting ..."     
+		echo "Lock detected! Waiting ..."
 		sleep 1
-	done               
-fi                      
+	done
+fi
 echo $$ > $LOCK_FILE
-                                                          
+
 function get_sms_status() {
-	while true; do                  
+	while true; do
 		if read -t 10 line; then
-			if $(echo "$line" | grep -q '^+CMS ERROR'); then        
+			if $(echo "$line" | grep -q '^+CMS ERROR'); then
 				echo "fail"
 				return 1
 			fi
@@ -54,4 +54,3 @@ status="$?"
 rm -f $LOCK_FILE
 echo "status: $status"
 exit $status
-

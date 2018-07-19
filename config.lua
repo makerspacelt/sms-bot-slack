@@ -1,8 +1,8 @@
 local _M = {}
 
 _M.slack = {
-    verification = "",
-    oauth = "",
+	verification = "",
+	oauth = "",
 }
 
 return _M

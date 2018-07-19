@@ -65,8 +65,8 @@ function getUser(user)
 		source = ltn12.source.string(request_body),
 		sink = ltn12.sink.table(response_body),
 	}
-	
-	nixio.syslog("info", "User " .. user  .. " requested from slack, status: " .. code) 
+
+	nixio.syslog("info", "User " .. user  .. " requested from slack, status: " .. code)
 	if code == 200 and type(response_body) == "table" then
 		return luci.jsonc.parse(table.concat(response_body))
 	else
@@ -122,7 +122,7 @@ if channelObj.ok then
 		channelText = " in private!"
 	else
 		channelText = " in #" .. channelObj.channel.name_normalized
-	end	
+	end
 end
 
 text = "@" .. callerObj.user.profile.display_name_normalized .. bodyText .. channelText .. footerText
@@ -138,4 +138,3 @@ else
 end
 
 exit()
-
