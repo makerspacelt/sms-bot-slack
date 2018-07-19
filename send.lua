@@ -5,17 +5,21 @@ require "nixio"
 local config = require "root.sms.config"
 local sclient = require("ssl.https")
 
-
 nixio.openlog("sms-sender")
 nixio.syslog("info", "Child ready")
 
-local userId = arg[1]
-local text = arg[2]
-local callback = arg[3]
-local channelId = arg[4]
+local callerId = arg[1]
+local userId = arg[2]
+local text = arg[3]
+local callback = arg[4]
+local channelId = arg[5]
 
-nixio.syslog("info", "userId: " .. userId)
-nixio.syslog("info", "text: " .. text)
+local channelText = ""
+local footerText = " - Makerspace.lt @ slack"
+local bodyText = " wants to talk with you"
+
+nixio.syslog("info", "callerId: " .. callerId)
+nixio.syslog("info", "toUserId: " .. userId)
 nixio.syslog("info", "callback: " .. callback)
 nixio.syslog("info", "channelId: " .. channelId)
 
@@ -25,7 +29,8 @@ function exit()
 end
 
 function sendSms(phone, text)
-	return luci.sys.call("echo -n '" .. text .. "' | gnokii --sendsms " .. phone)
+	-- return luci.sys.call("echo -n '" .. text .. "' | gnokii --sendsms " .. phone)
+	return luci.sys.call("/root/sms/send.sh '" .. phone ..  "' '" .. text .."'")
 end
 
 function respond(url, msg)
@@ -60,9 +65,8 @@ function getUser(user)
 		source = ltn12.source.string(request_body),
 		sink = ltn12.sink.table(response_body),
 	}
-
-	nixio.syslog("info", "User requested from slack")
-
+	
+	nixio.syslog("info", "User " .. user  .. " requested from slack, status: " .. code) 
 	if code == 200 and type(response_body) == "table" then
 		return luci.jsonc.parse(table.concat(response_body))
 	else
@@ -86,7 +90,7 @@ function getChannel(channel)
 		sink = ltn12.sink.table(response_body),
 	}
 
-	nixio.syslog("info", "Channel info requested from slack")
+	nixio.syslog("info", "Channel " .. channel  .. " requested from slack, status: " .. code)
 
 	if code == 200 and type(response_body) == "table" then
 		return luci.jsonc.parse(table.concat(response_body))
@@ -95,20 +99,33 @@ function getChannel(channel)
 	end
 end
 
-nixio.syslog("info", "Retrieving user info")
+local callerObj = getUser(callerId)
 local userObj = getUser(userId)
 local channelObj = getChannel(channelId)
 
+if not callerObj.ok then
+	nixio.syslog("err", "Invalid caller object")
+	respond(callback, "ERROR!: Who are you?")
+	exit()
+end
+nixio.syslog("info", "Caller: " .. callerObj.user.profile.display_name_normalized)
+
 if not userObj.ok or userObj.user.profile.phone == nil or userObj.user.profile.phone == '' then
-	nixio.syslog("error", "Invalid user/no number trying to inform user")
+	nixio.syslog("err", "Invalid user/no number trying to inform user")
 	respond(callback, "ERROR!: User has no phone/invalid user")
 	exit()
 end
+nixio.syslog("info", "User: " .. userObj.user.profile.display_name_normalized)
 
-if channelObj.ok and channelObj.channel.name and channelObj.channel.name ~= '' then
-	text = text .. " #" .. channelObj.channel.name
+if channelObj.ok then
+	if channelObj.channel.is_im then
+		channelText = " in private!"
+	else
+		channelText = " in #" .. channelObj.channel.name_normalized
+	end	
 end
 
+text = "@" .. callerObj.user.profile.display_name_normalized .. bodyText .. channelText .. footerText
 nixio.syslog("info", "Sending sms to: " .. tostring(userObj.user.profile.phone) .. " text: " .. text)
 local status = sendSms(userObj.user.profile.phone, text)
 
@@ -121,3 +138,4 @@ else
 end
 
 exit()
+

@@ -86,7 +86,6 @@ function handle_request(env)
 	nixio.closelog()
 end
 
-
 function httpdispatch(request, prefix)
 	local http = require "luci.http"
 
@@ -97,11 +96,11 @@ function httpdispatch(request, prefix)
 		nixio.syslog("err", "Reqeust doesn't look like slack, aborting...")
 
 		http.status(500, "Internal Server Error")
-        http.prepare_content("text/plain")
-        http.write(message)
-        http.close()
+        	http.prepare_content("text/plain")
+        	http.write(message)
+        	http.close()
 
-        return
+        	return
 	end
 
 	http.status(200, "OK")
@@ -110,21 +109,26 @@ function httpdispatch(request, prefix)
 	local callback = http.formvalue("response_url")
 	local testData = http.formvalue("text");
 	local channel  = http.formvalue("channel_id")
-
+	local caller   = http.formvalue("user_id")
+	
 	if not testData or testData == '' then
-		http.write("ERROR: usage @user text")
+		http.write("ERROR: usage @user")
 		http.close()
 		return
 	end
-
-	local user, name, text = string.match(http.formvalue("text"), "\<@(.+)|(.+)\> (.+)$")
-	if (not user or not text or not name) then
-		http.write("ERROR: usage @user text")
+	
+	local user, name, text = string.match(http.formvalue("text"), "\<@(.+)|(.+)\>(.*)$")
+	if (not user  or not name) then
+		http.write("ERROR: usage @user")
 		http.close()
 		return
 	end
+	
+	if not text or text == '' then
+		text = "."
+	end
 
-	io.popen('/usr/bin/lua /root/sms/send.lua "' .. user .. '" "' .. text .. '" "' .. callback .. '" "' .. channel .. '"')
+	io.popen('/usr/bin/lua /root/sms/send.lua "'.. caller ..'" "' .. user .. '" "' .. text .. '" "' .. callback .. '" "' .. channel .. '"')
 
 	http.write("Roger! Sending sms to " .. name .. "\n\r")
 	http.close()
