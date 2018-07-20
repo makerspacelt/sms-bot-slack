@@ -125,7 +125,7 @@ if channelObj.ok then
 	end
 end
 
-phone = tostring(userObj.user.profile.phone):gsub("%s+", "")                                   
+phone = tostring(userObj.user.profile.phone):gsub("[^0-9+]", "")                                   
 text = "@" .. callerObj.user.profile.display_name_normalized .. bodyText .. channelText .. footerText
                                                                                
 nixio.syslog("info", "Sending sms to: " .. phone .. " text: " .. text)                               
