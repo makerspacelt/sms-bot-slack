@@ -125,9 +125,11 @@ if channelObj.ok then
 	end
 end
 
+phone = tostring(userObj.user.profile.phone):gsub("%s+", "")                                   
 text = "@" .. callerObj.user.profile.display_name_normalized .. bodyText .. channelText .. footerText
-nixio.syslog("info", "Sending sms to: " .. tostring(userObj.user.profile.phone) .. " text: " .. text)
-local status = sendSms(userObj.user.profile.phone, text)
+                                                                               
+nixio.syslog("info", "Sending sms to: " .. phone .. " text: " .. text)                               
+local status = sendSms(phone, text) 
 
 if status ~= 0 then
 	nixio.syslog("err", "SMS sendig failed informing user...")
