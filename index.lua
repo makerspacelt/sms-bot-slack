@@ -126,7 +126,27 @@ function httpdispatch(request, prefix)
 	if not text or text == '' then
 		text = "."
 	end
+	
+	local throttleFile = "/tmp/" .. caller .. user
+	local throttleHandle = io.open(throttleFile, "r")
+	if throttleHandle ~= nil then
+		local sentTime = throttleHandle:read("*n")
+		io.close(throttleHandle)
+		
+		nixio.syslog("info", "Throttling file found: " .. throttleFile)
+		nixio.syslog("info", "Last sms: " .. sentTime)
 
+		local localTime = os.time(os.date("!*t"))
+		nixio.syslog("info", "Local time: " .. localTime)
+
+		if localTime - sentTime < 3600 then
+			nixio.syslog("err", "Throttling from: " .. caller .. " to: " .. user .. " seconds passed: " .. localTime - sentTime)
+			http.write("ERROR: Hold your horses, pal! Single sms in an hour allowed")                                            
+			http.close()                                                                
+			return
+		end		
+	end
+	
 	io.popen('/usr/bin/lua /root/sms/send.lua "'.. caller ..'" "' .. user .. '" "' .. text .. '" "' .. callback .. '" "' .. channel .. '"')
 
 	http.write("Roger! Sending sms to " .. name .. "\n\r")

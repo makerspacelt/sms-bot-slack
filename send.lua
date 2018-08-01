@@ -135,7 +135,14 @@ if status ~= 0 then
 	nixio.syslog("err", "SMS sendig failed informing user...")
 	respond(callback, "ERROR: Someone didn't pay for phone, sms sending failed (" .. tostring(status) .. ")")
 else
-	nixio.syslog("info", "SMS sendig success informing user...")
+	nixio.syslog("info", "SMS sendig success informing user and adding throttle info...")
+	
+	local localTime = os.time(os.date("!*t"))
+	local throttleFile = "/tmp/" .. callerId .. userId
+	local throttleHandle = io.open(throttleFile, "w+")
+	throttleHandle:write(localTime)
+	io.close(throttleHandle)
+
 	respond(callback, "SMS delivered")
 end
 
