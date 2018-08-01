@@ -15,7 +15,7 @@ local callback = arg[4]
 local channelId = arg[5]
 
 local channelText = ""
-local footerText = " - Makerspace.lt @ slack"
+local footerText = " - makerspacelt.slack.com"
 local bodyText = " wants to talk with you"
 
 nixio.syslog("info", "callerId: " .. callerId)
